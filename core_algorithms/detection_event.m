@@ -24,14 +24,16 @@
 
 function detected = detection_event(output, tx, sim, cfg)
 %DETECTION_EVENT One full-waveform matched-filter detection decision.
-[c,~] = correlation_trace(output, tx, sim.directStart, cfg.fs);
+[c,~] = correlation_trace(output,tx,sim.directStart,cfg.fs);
+[cInterference,~] = correlation_trace(output-sim.echo,tx, ...
+    sim.directStart,cfg.fs);
 echoIdx = sim.echoStart;
 guard = round(0.03*cfg.fs);
-mask = true(size(c));
+mask = true(size(cInterference));
 for idx = [sim.directStart, sim.echoStart]
-    mask(max(1,idx-guard):min(numel(c),idx+guard)) = false;
+    mask(max(1,idx-guard):min(numel(cInterference),idx+guard)) = false;
 end
-sigma = sqrt(mean(abs(c(mask)).^2)+eps);
+sigma = sqrt(mean(abs(cInterference(mask)).^2)+eps);
 threshold = sigma*sqrt(-log(cfg.detectionPfa));
 detected = abs(c(echoIdx)) > threshold;
 end

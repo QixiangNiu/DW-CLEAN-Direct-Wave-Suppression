@@ -24,19 +24,22 @@
 
 function pd = estimate_detection_pd(output, tx, sim, cfg, trials)
 %ESTIMATE_DETECTION_PD Scalar matched-filter Monte Carlo detection model.
-% Suppression is performed in the full waveform domain. Monte Carlo then
-% samples the measured post-suppression correlation-floor distribution.
+% Suppression is performed in the full waveform domain. The known simulated
+% echo supplies the deterministic matched-filter mean; residual direct wave,
+% multipath, and noise supply the interference distribution.
 
-[c, ~] = correlation_trace(output, tx, sim.directStart, cfg.fs);
+[cSignal,~] = correlation_trace(sim.echo,tx,sim.directStart,cfg.fs);
+[cInterference,~] = correlation_trace(output-sim.echo,tx, ...
+    sim.directStart,cfg.fs);
 echoIdx = sim.echoStart;
 guard = round(0.03*cfg.fs);
-mask = true(size(c));
+mask = true(size(cInterference));
 for idx = [sim.directStart, sim.echoStart]
-    mask(max(1,idx-guard):min(numel(c),idx+guard)) = false;
+    mask(max(1,idx-guard):min(numel(cInterference),idx+guard)) = false;
 end
-floorSamples = c(mask);
+floorSamples = cInterference(mask);
 sigma = sqrt(mean(abs(floorSamples).^2)+eps);
-mu = c(echoIdx);
+mu = cSignal(echoIdx)+cInterference(echoIdx);
 threshold = sigma*sqrt(-log(cfg.detectionPfa));
 draws = mu + sigma/sqrt(2)*(randn(trials,1)+1j*randn(trials,1));
 pd = mean(abs(draws) > threshold);

@@ -23,34 +23,64 @@
 % =========================================================================
 
 function out = music_comparison(single, cfg)
-%MUSIC_COMPARISON Eight-element MUSIC comparison using measured peak ratios.
+%MUSIC_COMPARISON Eight-element MUSIC using processed MF snapshots.
+% Source snapshots are bootstrapped from the actual direct and echo
+% matched-filter mainlobes. Only independent sensor noise is synthesized.
 
 angles = -90:0.25:90;
 M = cfg.arrayElements;
 K = cfg.musicSnapshots;
 aD = exp(-1j*pi*(0:M-1).'*sind(cfg.directAngleDeg));
 aE = exp(-1j*pi*(0:M-1).'*sind(cfg.echoAngleDeg));
-out.spectrumDB = zeros(numel(single.names), numel(angles));
+out.spectrumDB = zeros(numel(single.names),numel(angles));
+guard = max(2,round(0.002*cfg.fs));
 
-for m = 1:numel(single.names)
-    sD = (randn(1,K)+1j*randn(1,K))/sqrt(2);
-    sE = (randn(1,K)+1j*randn(1,K))/sqrt(2);
-    ampD = max(single.directPeaks(m), 1e-4);
-    ampE = max(single.echoPeaks(m), 1e-4);
-    noiseStd = 0.015;
-    X = ampD*aD*sD + ampE*aE*sE + ...
-        noiseStd/sqrt(2)*(randn(M,K)+1j*randn(M,K));
+previous = rng;
+cleanup = onCleanup(@() rng(previous));
+rng(cfg.randomSeed+52000,'twister');
+for method = 1:numel(single.names)
+    [cOutput,~] = correlation_trace(single.outputs{method}, ...
+        single.sim.reference(single.sim.directStart: ...
+        single.sim.directStart+round(cfg.T*cfg.fs)-1), ...
+        single.sim.directStart,cfg.fs);
+    [cEcho,~] = correlation_trace(single.sim.echo, ...
+        single.sim.reference(single.sim.directStart: ...
+        single.sim.directStart+round(cfg.T*cfg.fs)-1), ...
+        single.sim.directStart,cfg.fs);
+    [cNoise,~] = correlation_trace(single.sim.noise, ...
+        single.sim.reference(single.sim.directStart: ...
+        single.sim.directStart+round(cfg.T*cfg.fs)-1), ...
+        single.sim.directStart,cfg.fs);
+    cResidualDirect = cOutput-cEcho-cNoise;
+    directIndices = max(1,single.sim.directStart-guard): ...
+        min(numel(cOutput),single.sim.directStart+guard);
+    echoIndices = max(1,single.sim.echoStart-guard): ...
+        min(numel(cOutput),single.sim.echoStart+guard);
+    sourceD = cResidualDirect(directIndices);
+    sourceE = cEcho(echoIndices);
+    sourceD = reshape(sourceD(randi(numel(sourceD),1,K)),1,[]);
+    sourceE = reshape(sourceE(randi(numel(sourceE),1,K)),1,[]);
+
+    floorMask = true(size(cOutput));
+    floorMask(max(1,directIndices(1)-guard): ...
+        min(numel(cOutput),directIndices(end)+guard)) = false;
+    floorMask(max(1,echoIndices(1)-guard): ...
+        min(numel(cOutput),echoIndices(end)+guard)) = false;
+    sensorNoiseStd = sqrt(median(abs(cNoise(floorMask)).^2)+eps);
+    sensorNoise = sensorNoiseStd/sqrt(2)*(randn(M,K)+1j*randn(M,K));
+    X = aD*sourceD+aE*sourceE+sensorNoise;
+    X = X-mean(X,2);
     R = (X*X')/K;
-    [V,D] = eig((R+R')/2, 'vector');
-    [~,order] = sort(real(D), 'descend');
+    [V,D] = eig((R+R')/2,'vector');
+    [~,order] = sort(real(D),'descend');
     En = V(:,order(3:end));
-    P = zeros(size(angles));
+    spectrum = zeros(size(angles));
     for q = 1:numel(angles)
-        a = exp(-1j*pi*(0:M-1).'*sind(angles(q)));
-        P(q) = 1/real(a'*(En*En')*a + eps);
+        steering = exp(-1j*pi*(0:M-1).'*sind(angles(q)));
+        denominator = real(steering'*(En*En')*steering);
+        spectrum(q) = 1/max(denominator,eps);
     end
-    P = 10*log10(P/max(P));
-    out.spectrumDB(m,:) = P;
+    out.spectrumDB(method,:) = 10*log10(spectrum/max(spectrum));
 end
 
 out.angles = angles;
@@ -59,4 +89,6 @@ out.names = single.names;
 [~,iE] = min(abs(angles-cfg.echoAngleDeg));
 out.directPeakDB = out.spectrumDB(:,iD);
 out.echoPeakDB = out.spectrumDB(:,iE);
+out.arraySnapshots = K;
+clear cleanup
 end

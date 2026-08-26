@@ -34,6 +34,7 @@ sampleEvery = max(1, floor(N/60));
 wHistory = zeros(M, ceil(N/sampleEvery));
 errHistory = zeros(ceil(N/sampleEvery),1);
 hCount = 0;
+updateCount = 0;
 
 if strcmpi(method, 'RLS')
     P = 100*eye(M);
@@ -46,19 +47,23 @@ for n = M:N
     estimate(n) = yhat;
     residual(n) = e;
 
-    switch upper(method)
-        case 'LMS'
-            w = w + cfg.muLMS*u*conj(e);
-        case 'NLMS'
-            w = w + (cfg.muNLMS/(cfg.nlmsDelta + real(u'*u)))*u*conj(e);
-        case 'RLS'
-            den = cfg.rlsLambda + u'*P*u;
-            k = (P*u)/den;
-            w = w + k*conj(e);
-            P = (P-k*(u'*P))/cfg.rlsLambda;
-            P = (P+P')/2;
-        otherwise
-            error('Unknown adaptive method: %s', method);
+    canUpdate = real(u'*u) > eps && updateCount < cfg.adaptiveMaxUpdates;
+    if canUpdate
+        switch upper(method)
+            case 'LMS'
+                w = w + cfg.muLMS*u*conj(e);
+            case 'NLMS'
+                w = w + (cfg.muNLMS/(cfg.nlmsDelta + real(u'*u)))*u*conj(e);
+            case 'RLS'
+                den = cfg.rlsLambda + u'*P*u;
+                k = (P*u)/den;
+                w = w + k*conj(e);
+                P = (P-k*(u'*P))/cfg.rlsLambda;
+                P = (P+P')/2;
+            otherwise
+                error('Unknown adaptive method: %s', method);
+        end
+        updateCount = updateCount+1;
     end
 
     if mod(n-M, sampleEvery)==0 || n==N
@@ -75,4 +80,5 @@ info.estimate = estimate;
 info.weightHistory = wHistory(:,1:hCount);
 info.errorPower = errHistory(1:hCount);
 info.sampleEvery = sampleEvery;
+info.updateCount = updateCount;
 end

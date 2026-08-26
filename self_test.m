@@ -24,33 +24,27 @@
 
 clear; clc;
 rootDir = fileparts(mfilename('fullpath'));
-addpath(fullfile(rootDir, 'core_algorithms'));
+addpath(fullfile(rootDir,'core_algorithms'));
 cfg = config_dw_clean();
-rng(cfg.randomSeed, 'twister');
+[tx,waveform] = generate_isudc(cfg);
+assert(numel(tx) == round(cfg.T*cfg.fs));
+assert(all(isfinite(tx)) && all(isfinite(waveform.instantaneousFrequency)));
+assert(max(abs(abs(tx)-1)) < 1e-12);
 
-fprintf('DW-CLEAN reproduction mode: %s\n', cfg.runMode);
+sim = simulate_channel(cfg,tx,-25,cfg.randomSeed+17);
+directSNR = 10*log10(mean(abs(sim.direct(sim.direct~=0)).^2)/ ...
+    mean(abs(sim.noise).^2));
+echoSNR = 10*log10(mean(abs(sim.echo(sim.echo~=0)).^2)/ ...
+    mean(abs(sim.noise).^2));
+assert(abs(directSNR-cfg.directSNRdB) < 0.2);
+assert(abs(echoSNR+25) < 0.2);
 
-[tx, waveform] = generate_isudc(cfg);
-
-single = run_single_case(cfg, tx, -25);
-
-[sirCurves, pdCurves] = monte_carlo_curves(cfg, tx);
-
-music = music_comparison(single, cfg);
-
-generalization = generalization_curves(cfg);
-
-iterations = iteration_curves(cfg, tx);
-
-DW_CLEAN_results = struct( ...
-    'configuration', cfg, ...
-    'transmittedSignal', tx, ...
-    'waveform', waveform, ...
-    'singleCase', single, ...
-    'sirCurves', sirCurves, ...
-    'detectionProbability', pdCurves, ...
-    'music', music, ...
-    'generalization', generalization, ...
-    'iterationCurves', iterations);
-
-fprintf('Completed. Results are available in workspace variable DW_CLEAN_results.\n');
+methods = apply_all_methods(cfg,tx,sim);
+for method = 1:numel(methods.outputs)
+    assert(numel(methods.outputs{method}) == numel(sim.received));
+    assert(all(isfinite(methods.outputs{method})));
+    assert(isfinite(methods.sirDB(method)));
+end
+assert(methods.infos{6}.iterations > 0);
+assert(isempty(findall(groot,'Type','figure')));
+fprintf('All DW-CLEAN numerical self-tests passed. No figures were created.\n');

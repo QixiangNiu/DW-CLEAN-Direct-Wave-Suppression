@@ -23,17 +23,22 @@
 % =========================================================================
 
 function value = correlation_sir_db(output, tx, sim, cfg)
-%CORRELATION_SIR_DB Echo peak versus residual direct/multipath and floor.
-[c,~] = correlation_trace(output, tx, sim.directStart, cfg.fs);
+%CORRELATION_SIR_DB Equation (37) in the matched-filter decision domain.
+% The known simulated echo is the signal of interest. Everything remaining
+% in the processed output is direct-wave residue, multipath, and noise.
+[cSignal,~] = correlation_trace(sim.echo,tx,sim.directStart,cfg.fs);
+[cInterference,~] = correlation_trace(output-sim.echo,tx, ...
+    sim.directStart,cfg.fs);
 guard = max(2,round(0.002*cfg.fs));
-directRange = sim.directStart:min(numel(c), ...
+directRange = sim.directStart:min(numel(cInterference), ...
     sim.directStart+round(cfg.maxDirectMultipathDelaySec*cfg.fs));
-echoRange = max(1,sim.echoStart-guard):min(numel(c),sim.echoStart+guard);
-echoPeak = max(abs(c(echoRange)));
-directPeak = max(abs(c(directRange)));
-mask = true(size(c));
-mask(max(1,directRange(1)-guard):min(numel(c),directRange(end)+guard)) = false;
-mask(max(1,echoRange(1)-guard):min(numel(c),echoRange(end)+guard)) = false;
-floorPower = median(abs(c(mask)).^2);
-value = 10*log10((echoPeak^2+eps)/(directPeak^2+floorPower+eps));
+echoRange = max(1,sim.echoStart-guard):min(numel(cInterference),sim.echoStart+guard);
+signalPower = max(abs(cSignal(echoRange)).^2);
+directPower = max(abs(cInterference(directRange)).^2);
+mask = true(size(cInterference));
+mask(max(1,directRange(1)-guard):min(numel(mask),directRange(end)+guard)) = false;
+mask(max(1,echoRange(1)-guard):min(numel(mask),echoRange(end)+guard)) = false;
+noisePower = median(abs(cInterference(mask)).^2);
+interferencePower = directPower+noisePower;
+value = 10*log10((signalPower+eps)/(interferencePower+eps));
 end

@@ -57,27 +57,31 @@ cfg.gmskH = 0.5;
 cfg.directStartSec = 0.20;
 cfg.recordDuration = 1.25;
 cfg.multipathDelaySec = [0.018 0.047];
-cfg.multipathGain = [-0.55*exp(1j*0.4), 0.32*exp(-1j*0.7)];
+cfg.multipathReflection = [-0.75*exp(1j*0.4), 0.55*exp(-1j*0.7)];
 cfg.maxDirectMultipathDelaySec = 0.15;
 cfg.noisePower = 1;
 cfg.cleanLoopGain = 1.0;
-% The paper notes that conventional CLEAN makes only the single strongest
-% judgement, whereas window1 lets DW-CLEAN revisit strong multipath.
+% One conventional CLEAN decision is used for the paper's method comparison;
+% iteration_curves.m overrides this value to reproduce the 0:100 study.
 cfg.cleanMaxIterations = 1;
-cfg.dwMaxIterations = 8;
+cfg.dwMaxIterations = 100;
+cfg.segmentMaxIterations = 10;
+cfg.segmentGainSmoothing = 3;
+cfg.adaptiveMaxUpdates = inf;
 cfg.arrayElements = 8;
 cfg.directAngleDeg = 0;
 cfg.echoAngleDeg = 60;
 cfg.musicSnapshots = 600;
 cfg.detectionPfa = 1e-3;
+cfg.iterationCounts = 0:10:100;
 
 if cfg.runMode == "paper"
     cfg.monteCarloTrials = 5000;
     cfg.generalizationTrials = 5000;
     cfg.fullWaveformMonteCarlo = true;
 else
-    cfg.monteCarloTrials = 80;
-    cfg.generalizationTrials = 60;
+    cfg.monteCarloTrials = 100;
+    cfg.generalizationTrials = 100;
     cfg.fullWaveformMonteCarlo = false;
 end
 

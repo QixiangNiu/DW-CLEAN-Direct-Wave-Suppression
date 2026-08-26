@@ -4,7 +4,7 @@
 
 ---
 
-## 📄 Paper
+## 📑 Paper
 
 **An Improved CLEAN Direct-Wave Suppression Algorithm in Integrated System of Underwater Detection and Communication**
 
@@ -14,7 +14,7 @@ DOI: [10.1109/JSEN.2024.3360274](https://doi.org/10.1109/JSEN.2024.3360274)
 
 ---
 
-## 🚀 Highlights
+## ✨ Highlights
 
 - 🔹 Reproduces the paper's GSFM-GMSK integrated detection-and-communication waveform.
 - 🔹 Implements conventional CLEAN and the improved double-window CLEAN method.
@@ -25,7 +25,7 @@ DOI: [10.1109/JSEN.2024.3360274](https://doi.org/10.1109/JSEN.2024.3360274)
 
 ---
 
-## 🧠 Overview
+## 🔎 Overview
 
 In an integrated underwater detection and communication system, a strong direct wave and its multipath components may mask a much weaker target echo. This repository reconstructs the processing chain described in the paper: integrated waveform generation, bistatic-channel simulation, direct-wave suppression, matched-filter evaluation, detection-probability estimation, MUSIC comparison, and parameter-generalization tests.
 
@@ -33,7 +33,7 @@ The implementation keeps the parameters disclosed in the paper and records the n
 
 ---
 
-## 📂 Repository Structure
+## 🗂️ Repository Structure
 
 `core_algorithms` is the descriptive replacement for the conventional folder name `src`. In software repositories, `src` is short for **source** and normally stores source-code files; the name `core_algorithms` makes the folder's purpose explicit here.
 
@@ -82,7 +82,7 @@ DW_CLEAN_DirectWave_Suppression/
 
 ---
 
-## ⚙️ Getting Started
+## 🛠️ Getting Started
 
 ### Requirements
 
@@ -111,7 +111,7 @@ For reproducibility, the default random seed is fixed in `config_dw_clean.m`.
 
 ---
 
-## 📊 Results Summary
+## 📈 Results Summary
 
 The returned structure contains the following numerical results:
 
@@ -130,7 +130,7 @@ Expected qualitative behavior follows the paper: DW-CLEAN is intended to suppres
 
 ---
 
-## 📖 Citation
+## 🔖 Citation
 
 If this reproduction or the original method contributes to your research, please cite the paper:
 
@@ -149,7 +149,7 @@ If this reproduction or the original method contributes to your research, please
 
 ---
 
-## 📬 Contact
+## ✉️ Contact
 
 QIXIANG NIU  
 School of Marine Science and Technology, Northwestern Polytechnical University  
@@ -159,7 +159,7 @@ Email: [niuqx@mail.nwpu.edu.cn](mailto:niuqx@mail.nwpu.edu.cn)
 
 ---
 
-## ⭐ Notes
+## 💡 Notes
 
 - This repository is an independent MATLAB reproduction intended for academic research and method verification.
 - Parameters stated in the paper are separated from additional reproduction assumptions in `config_dw_clean.m`.
@@ -169,7 +169,7 @@ Email: [niuqx@mail.nwpu.edu.cn](mailto:niuqx@mail.nwpu.edu.cn)
 
 ---
 
-## © Copyright
+## 🛡️ © Copyright
 
 Copyright © 2023 QIXIANG NIU. All rights reserved.
 

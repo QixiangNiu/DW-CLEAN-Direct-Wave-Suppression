@@ -182,10 +182,10 @@ Email: [niuqx@mail.nwpu.edu.cn](mailto:niuqx@mail.nwpu.edu.cn)
 
 ---
 
-## 🛡️ © Copyright
+## 🛡️ License
 
-Copyright © 2023 QIXIANG NIU. All rights reserved.
+Copyright © 2023 QIXIANG NIU.
 
 Affiliations: 西北工业大学航海学院“水下通信与协同探测”实验室；西北工业大学海洋研究院。
 
-The code is provided for academic research and reproducibility. Please retain the authorship and copyright notices in redistributed or modified copies.
+The software in this repository is released under the [MIT License](LICENSE). Please retain the copyright and license notices in redistributed or modified copies. Academic users are also requested to cite the paper above when the implementation contributes to published work.

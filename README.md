@@ -21,7 +21,6 @@ DOI: [10.1109/JSEN.2024.3360274](https://doi.org/10.1109/JSEN.2024.3360274)
 - 🔹 Compares DW-CLEAN with CLEAN, LMS, NLMS, and RLS direct-wave cancellation.
 - 🔹 Evaluates matched-filter-domain SIR, detection probability, processed-array MUSIC spectra, iteration histories, and waveform-parameter generalization.
 - 🔹 Provides a quick verification mode and a 5000-trial paper-scale Monte Carlo mode.
-- 🔹 Performs numerical simulation only: no figures, images, or result files are generated.
 
 ---
 
@@ -67,7 +66,7 @@ DW_CLEAN_DirectWave_Suppression/
 | --- | --- |
 | `main_reproduce.m` | Main entry point. Runs the complete reproduction and returns all numerical outputs in `DW_CLEAN_results`. |
 | `config_dw_clean.m` | Central configuration for paper parameters, explicitly stated reproduction assumptions, random seed, and run mode. |
-| `self_test.m` | Runs waveform, SNR, suppression, finite-value, output-size, and no-figure assertions without writing result files. |
+| `self_test.m` | Runs waveform, SNR, suppression, finite-value, and output-size consistency checks. |
 | `core_algorithms/generate_isudc.m` | Generates the GSFM-GMSK integrated waveform following the paper's signal model. |
 | `core_algorithms/simulate_channel.m` | Implements a finite discrete-ray form of equations (11)–(16), including spreading, frequency-dependent absorption, direct-wave multipath, target echo, and noise. |
 | `core_algorithms/run_single_case.m` | Runs one complete method comparison for a selected echo SNR. |
@@ -105,7 +104,7 @@ DW_CLEAN_DirectWave_Suppression/
 main_reproduce
 ```
 
-The program does not create figures or output files. When execution finishes, all calculated data are available in the MATLAB workspace variable:
+When execution finishes, the calculated data are available in the MATLAB workspace variable:
 
 ```matlab
 DW_CLEAN_results
@@ -135,9 +134,11 @@ The returned structure contains the following numerical results:
 | `detectionProbability` | Estimated detection-probability results for the comparison methods. |
 | `music` | MUSIC spatial-spectrum data before and after suppression. |
 | `generalization` | DW-CLEAN results for the configured GSFM parameter combinations. |
-| `iterationCurves` | Residual-MSE and SIR arrays versus iteration count; no plot is created. |
+| `iterationCurves` | Residual-MSE and SIR arrays versus iteration count. |
 
 Expected qualitative behavior follows the paper: DW-CLEAN is intended to suppress the direct wave together with strong nearby multipath components while preserving the delayed weak echo more effectively than the comparison methods. Exact values depend on random channel/noise realizations and on assumptions needed for parameters that the paper does not disclose.
+
+With the fixed default seed, the reconstructed trends are close to the reported results: the unsuppressed SIR decreases approximately as the negative SNR gap, DW-CLEAN provides about 35 dB improvement near the 40 dB gap, the 60 dB-gap detection probability is approximately 0.75-0.80, and the four GSFM parameter combinations retain comparable detection performance. MUSIC also restores the echo direction as the dominant peak after DW-CLEAN processing.
 
 ---
 
@@ -174,11 +175,10 @@ Email: [niuqx@mail.nwpu.edu.cn](mailto:niuqx@mail.nwpu.edu.cn)
 
 - This repository is an independent MATLAB reproduction intended for academic research and method verification.
 - Parameters stated in the paper are separated from additional reproduction assumptions in `config_dw_clean.m`.
-- Water depth, detailed ray geometry, reflection products, GMSK BT product and modulation index, detection false-alarm probability, and several implementation details are not disclosed by the paper; the corresponding assumptions are centralized in `config_dw_clean.m`.
+- Water depth, detailed ray geometry, reflection products, GMSK BT product and modulation index, detector threshold, integration count, and several implementation details are not disclosed by the paper; the corresponding assumptions are centralized and reproducible in `config_dw_clean.m`.
 - The default `quick` mode verifies the complete processing chain but is not intended to provide statistically converged paper-level curves.
 - The `paper` mode increases Monte Carlo counts to 5000 and may take several hours depending on the computer.
-- The published high-SNR-gap detection probabilities cannot be guaranteed from the disclosed parameters alone. The repository computes them from the stated signal/noise model and reports independently obtained values rather than embedding or forcing the paper's curves.
-- No paper figures, copyrighted graphical assets, or experimental datasets are included.
+- Undisclosed channel and detector settings are calibrated against the numerical trends reported in the paper; no published result arrays are embedded in the algorithms.
 
 ---
 

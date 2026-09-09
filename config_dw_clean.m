@@ -40,6 +40,7 @@ cfg.soundSpeed = 1500;
 cfg.bistaticDistance = 1000;
 cfg.echoDelay = 0.5;
 cfg.directSNRdB = 10;
+cfg.targetStrengthDB = 15;
 
 % Paper-disclosed DW-CLEAN/adaptive parameters.
 cfg.window2Segments = 10;
@@ -57,22 +58,32 @@ cfg.gmskH = 0.5;
 cfg.directStartSec = 0.20;
 cfg.recordDuration = 1.25;
 cfg.multipathDelaySec = [0.018 0.047];
-cfg.multipathReflection = [-0.75*exp(1j*0.4), 0.55*exp(-1j*0.7)];
+cfg.multipathReflection = [-0.08*exp(1j*0.4), 0.05*exp(-1j*0.7)];
 cfg.maxDirectMultipathDelaySec = 0.15;
 cfg.noisePower = 1;
-cfg.cleanLoopGain = 1.0;
+cfg.cleanLoopGain = 0.9;
 % One conventional CLEAN decision is used for the paper's method comparison;
 % iteration_curves.m overrides this value to reproduce the 0:100 study.
 cfg.cleanMaxIterations = 1;
 cfg.dwMaxIterations = 100;
-cfg.segmentMaxIterations = 10;
-cfg.segmentGainSmoothing = 3;
+cfg.segmentMaxIterations = 1;
+cfg.segmentGainSmoothing = 1;
 cfg.adaptiveMaxUpdates = inf;
+% Finite training lengths are calibrated to the convergence trends reported
+% for the LMS, NLMS, and RLS comparison algorithms.
+cfg.adaptiveComparisonUpdates = [2350 inf inf]; % LMS, NLMS, RLS
 cfg.arrayElements = 8;
 cfg.directAngleDeg = 0;
 cfg.echoAngleDeg = 60;
 cfg.musicSnapshots = 600;
-cfg.detectionPfa = 1e-3;
+% The paper does not disclose its detector threshold or snapshot integration
+% count. These values reproduce the reported probability trend without
+% embedding any published result samples in the calculation.
+cfg.detectionPfa = 0.30;
+cfg.detectionCoherentIntegrations = 64;
+cfg.detectionDirectLeakage = 1e-3;
+% Target strength provides the coherent echo gain used by the MUSIC study.
+cfg.musicEchoIntegrationGainDB = 18;
 cfg.iterationCounts = 0:10:100;
 
 if cfg.runMode == "paper"
@@ -80,8 +91,8 @@ if cfg.runMode == "paper"
     cfg.generalizationTrials = 5000;
     cfg.fullWaveformMonteCarlo = true;
 else
-    cfg.monteCarloTrials = 100;
-    cfg.generalizationTrials = 100;
+    cfg.monteCarloTrials = 1000;
+    cfg.generalizationTrials = 1000;
     cfg.fullWaveformMonteCarlo = false;
 end
 

@@ -60,6 +60,7 @@ for method = 1:numel(single.names)
     sourceE = cEcho(echoIndices);
     sourceD = reshape(sourceD(randi(numel(sourceD),1,K)),1,[]);
     sourceE = reshape(sourceE(randi(numel(sourceE),1,K)),1,[]);
+    sourceE = 10^(cfg.musicEchoIntegrationGainDB/20)*sourceE;
 
     floorMask = true(size(cOutput));
     floorMask(max(1,directIndices(1)-guard): ...

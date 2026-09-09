@@ -47,4 +47,4 @@ for method = 1:numel(methods.outputs)
 end
 assert(methods.infos{6}.iterations > 0);
 assert(isempty(findall(groot,'Type','figure')));
-fprintf('All DW-CLEAN numerical self-tests passed. No figures were created.\n');
+fprintf('All DW-CLEAN numerical self-tests passed.\n');

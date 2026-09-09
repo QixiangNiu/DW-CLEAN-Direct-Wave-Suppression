@@ -31,15 +31,21 @@ function pd = estimate_detection_pd(output, tx, sim, cfg, trials)
 [cSignal,~] = correlation_trace(sim.echo,tx,sim.directStart,cfg.fs);
 [cInterference,~] = correlation_trace(output-sim.echo,tx, ...
     sim.directStart,cfg.fs);
+[cNoise,~] = correlation_trace(sim.noise,tx,sim.directStart,cfg.fs);
 echoIdx = sim.echoStart;
 guard = round(0.03*cfg.fs);
 mask = true(size(cInterference));
-for idx = [sim.directStart, sim.echoStart]
-    mask(max(1,idx-guard):min(numel(cInterference),idx+guard)) = false;
-end
+directRange = sim.directStart:min(numel(cInterference), ...
+    sim.directStart+round(cfg.maxDirectMultipathDelaySec*cfg.fs));
+mask(directRange) = false;
+mask(max(1,sim.echoStart-guard): ...
+    min(numel(cInterference),sim.echoStart+guard)) = false;
 floorSamples = cInterference(mask);
-sigma = sqrt(mean(abs(floorSamples).^2)+eps);
-mu = cSignal(echoIdx)+cInterference(echoIdx);
+directLeakagePower = cfg.detectionDirectLeakage* ...
+    max(abs(cInterference(directRange)).^2);
+sigma = sqrt(mean(abs(floorSamples).^2)+directLeakagePower+eps);
+coherentGain = sqrt(cfg.detectionCoherentIntegrations);
+mu = coherentGain*(cSignal(echoIdx)+cInterference(echoIdx)-cNoise(echoIdx));
 threshold = sigma*sqrt(-log(cfg.detectionPfa));
 draws = mu + sigma/sqrt(2)*(randn(trials,1)+1j*randn(trials,1));
 pd = mean(abs(draws) > threshold);

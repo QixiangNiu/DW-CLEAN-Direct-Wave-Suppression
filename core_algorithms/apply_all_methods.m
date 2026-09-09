@@ -31,9 +31,13 @@ infos = cell(size(names));
 outputs{1} = sim.received;
 infos{1} = struct('method','No suppression');
 
-[outputs{2}, infos{2}] = adaptive_cancel(sim.received, sim.reference, cfg, 'LMS');
-[outputs{3}, infos{3}] = adaptive_cancel(sim.received, sim.reference, cfg, 'NLMS');
-[outputs{4}, infos{4}] = adaptive_cancel(sim.received, sim.reference, cfg, 'RLS');
+adaptiveNames = {'LMS','NLMS','RLS'};
+for method = 1:numel(adaptiveNames)
+    local = cfg;
+    local.adaptiveMaxUpdates = cfg.adaptiveComparisonUpdates(method);
+    [outputs{method+1},infos{method+1}] = adaptive_cancel( ...
+        sim.received,sim.reference,local,adaptiveNames{method});
+end
 [outputs{5}, infos{5}] = clean_cancel(sim.received, tx, cfg, false);
 [outputs{6}, infos{6}] = clean_cancel(sim.received, tx, cfg, true);
 

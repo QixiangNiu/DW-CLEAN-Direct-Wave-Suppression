@@ -23,7 +23,7 @@
 % =========================================================================
 
 function [residual, info] = clean_cancel(received, tx, cfg, useDoubleWindow)
-%CLEAN_CANCEL Paper equations (20)-(33) and Algorithm 1 without plotting.
+%CLEAN_CANCEL Paper equations (20)-(33) and Algorithm 1.
 % Window1 is moved by lambda over the direct-wave/multipath search region.
 % For DW-CLEAN, each aligned window is divided into n Window2 segments.
 

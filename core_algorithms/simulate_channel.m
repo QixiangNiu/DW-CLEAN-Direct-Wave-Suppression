@@ -46,6 +46,8 @@ directAbsorption = 10.^(-((cfg.bistaticDistance/1000).*betaAbs)/20);
 directShape = directAbsorption.*tx;
 directScale = sqrt(cfg.noisePower*10^(cfg.directSNRdB/10) / ...
     mean(abs(directShape).^2));
+% echoSNRdB is the received echo SNR; target strength is already contained
+% in this receiver-side quantity and is retained separately as metadata.
 echoScale = sqrt(cfg.noisePower*10^(echoSNRdB/10) / mean(abs(tx).^2));
 directPulse = directScale*directShape;
 echoPulse = echoScale*tx;
@@ -80,6 +82,7 @@ sim.noise = noise;
 sim.directStart = iDirect;
 sim.echoStart = iEcho;
 sim.echoSNRdB = echoSNRdB;
+sim.targetStrengthDB = cfg.targetStrengthDB;
 sim.instantaneousFrequencyHz = fInst;
 sim.absorptionDBPerKm = betaAbs;
 if nargin >= 4, rng(previous); end
